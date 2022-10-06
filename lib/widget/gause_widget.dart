@@ -1,35 +1,24 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// taken from [pretty_gauge] package
-///
-///Class that holds the details of each segment on a CustomGauge
 class CustomGaugeSegment {
   final String segmentName;
-
-  ///Name of the segment
   final int segmentSize;
-
-  ///The size of the segment
   final Color segmentColor;
-
-  ///The color of the segment
 
   CustomGaugeSegment(this.segmentName, this.segmentSize, this.segmentColor);
 }
 
 class GaugeNeedleClipper extends CustomClipper<Path> {
-  //Note that x,y coordinate system starts at the bottom right of the canvas
-  //with x moving from right to left and y moving from bottm to top
-  //Bottom right is 0,0 and top left is x,y
   @override
   Path getClip(Size size) {
-    final path = Path();
-    path.moveTo(size.width * 0.5, size.height * 0.7);
-    path.lineTo(1.1 * size.width * 0.5, size.height * 0.7);
-    path.lineTo(size.width * 0.5, size.height);
-    path.lineTo(0.9 * size.width * 0.5, size.height * 0.7);
-    path.close();
+    final path = Path()
+      ..addRect(
+        Rect.fromPoints(Offset(size.width / 2 - 2, size.height / 1.21),
+            Offset(size.width / 2 + 2, size.height * .97)),
+      )
+      ..close();
+
     return path;
   }
 
@@ -98,25 +87,21 @@ class GaugeMarkerPainter extends CustomPainter {
   }
 }
 
-///Customizable Gauge widget for Flutter
 class CustomGauge extends StatefulWidget {
   final double gaugeSize;
   final List<CustomGaugeSegment>? segments;
 
   final int minValue;
-
   final int maxValue;
 
+  final int? baselineValue;
+  final int? previousValue;
   final int? currentValue;
 
-  ///Custom color for the needle on the Gauge. Defaults to Colors.black
   final Color needleColor;
 
-  ///Widget that is used to show the current value on the Gauge. Defaults to show the current value as a Decimal with 1 digit
-  ///If value must not be shown, supply Container()
   final Widget? valueWidget;
 
-  ///Specify if you want to display Min and Max value on the Gauge widget
   final bool showMarkers;
 
   @override
@@ -128,6 +113,8 @@ class CustomGauge extends StatefulWidget {
     this.segments,
     this.minValue = 0,
     this.maxValue = 100,
+    this.baselineValue,
+    this.previousValue,
     this.currentValue,
     this.needleColor = Colors.black,
     this.valueWidget,
@@ -136,18 +123,11 @@ class CustomGauge extends StatefulWidget {
 }
 
 class _CustomGaugeState extends State<CustomGauge> {
-  //This method builds out multiple arcs that make up the Gauge
-  //using data supplied in the segments property
   List<Widget> buildGauge(List<CustomGaugeSegment> segments) {
     List<CustomPaint> arcs = [];
     double cumulativeSegmentSize = 0.0;
     int gaugeSpread = widget.maxValue - widget.minValue;
 
-    //Iterate through the segments collection in reverse order
-    //First paint the arc with the last segment color, then paint multiple arcs in sequence until we reach the first segment
-
-    //Because all these arcs will be painted inside of a Stack, it will overlay to represent the eventual gauge with
-    //multiple segments
     segments.reversed.forEach((segment) {
       arcs.add(
         CustomPaint(
@@ -169,24 +149,33 @@ class _CustomGaugeState extends State<CustomGauge> {
   @override
   Widget build(BuildContext context) {
     List<CustomGaugeSegment>? segments = widget.segments;
-    int? currentValue = widget.currentValue;
-    int currentValueDecimalPlaces = 0;
+    int? localBaselineValue = widget.baselineValue;
+
+    if (widget.baselineValue! < widget.minValue) {
+      localBaselineValue = widget.minValue;
+    }
+    if (widget.baselineValue! > widget.maxValue) {
+      localBaselineValue = widget.maxValue;
+    }
+
+    int? localPreviousValue = widget.previousValue;
+
+    if (widget.previousValue! < widget.minValue) {
+      localPreviousValue = widget.minValue;
+    }
+    if (widget.previousValue! > widget.maxValue) {
+      localPreviousValue = widget.maxValue;
+    }
+
+    int? localCurrentValue = widget.currentValue;
 
     if (widget.currentValue! < widget.minValue) {
-      currentValue = widget.minValue;
+      localCurrentValue = widget.minValue;
     }
     if (widget.currentValue! > widget.maxValue) {
-      currentValue = widget.maxValue;
-    }
-    // Make sure the decimal place if supplied meets Darts bounds (0-20)
-    if (currentValueDecimalPlaces < 0) {
-      currentValueDecimalPlaces = 0;
-    }
-    if (currentValueDecimalPlaces > 20) {
-      currentValueDecimalPlaces = 20;
+      localCurrentValue = widget.maxValue;
     }
 
-    //If segments is supplied, validate that the sum of all segment sizes = (maxValue - minValue)
     if (segments != null) {
       double totalSegmentSize = 0;
       segments.forEach((segment) {
@@ -196,7 +185,6 @@ class _CustomGaugeState extends State<CustomGauge> {
         throw Exception('Total segment size must equal (Max Size - Min Size)');
       }
     } else {
-      //If no segments are supplied, default to one segment with default color
       segments = [
         CustomGaugeSegment('', (widget.maxValue - widget.minValue), Colors.grey)
       ];
@@ -240,14 +228,52 @@ class _CustomGaugeState extends State<CustomGauge> {
             alignment: Alignment.center,
             child: Transform.rotate(
               angle: (math.pi / 2) +
-                  ((currentValue! - widget.minValue) /
+                  ((localBaselineValue! - widget.minValue) /
                       (widget.maxValue - widget.minValue) *
                       math.pi),
               child: ClipPath(
                 clipper: GaugeNeedleClipper(),
                 child: Container(
-                  width: widget.gaugeSize * 0.75,
-                  height: widget.gaugeSize * 0.75,
+                  width: widget.gaugeSize * 0.3,
+                  height: widget.gaugeSize,
+                  color: widget.needleColor,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            height: widget.gaugeSize,
+            width: widget.gaugeSize,
+            alignment: Alignment.center,
+            child: Transform.rotate(
+              angle: (math.pi / 2) +
+                  ((localPreviousValue! - widget.minValue) /
+                      (widget.maxValue - widget.minValue) *
+                      math.pi),
+              child: ClipPath(
+                clipper: GaugeNeedleClipper(),
+                child: Container(
+                  width: widget.gaugeSize * 0.3,
+                  height: widget.gaugeSize,
+                  color: widget.needleColor,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            height: widget.gaugeSize,
+            width: widget.gaugeSize,
+            alignment: Alignment.center,
+            child: Transform.rotate(
+              angle: (math.pi / 2) +
+                  ((localCurrentValue! - widget.minValue) /
+                      (widget.maxValue - widget.minValue) *
+                      math.pi),
+              child: ClipPath(
+                clipper: GaugeNeedleClipper(),
+                child: Container(
+                  width: widget.gaugeSize * 0.3,
+                  height: widget.gaugeSize,
                   color: widget.needleColor,
                 ),
               ),
@@ -267,7 +293,7 @@ class _CustomGaugeState extends State<CustomGauge> {
                   children: [
                     widget.valueWidget ??
                         Text(
-                          currentValue.toString(),
+                          localBaselineValue.toString(),
                           style: Theme.of(context).textTheme.headline3,
                         ),
                     Column(

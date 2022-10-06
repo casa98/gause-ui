@@ -57,7 +57,9 @@ class _HomePageState extends State<HomePage> {
                       CustomGaugeSegment('Medium', 34, Colors.orange),
                       CustomGaugeSegment('High', 33, Colors.green),
                     ],
-                    currentValue: 50,
+                    baselineValue: 75,
+                    previousValue: 25,
+                    currentValue: 40,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
