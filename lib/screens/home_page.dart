@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 32.0),
                   CustomGauge(
-                    gaugeSize: 310,
+                    gaugeSize: 330,
                     segments: [
                       CustomGaugeSegment('Low', 33, Colors.red),
                       CustomGaugeSegment('Medium', 34, Colors.orange),

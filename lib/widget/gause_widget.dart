@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import 'arc_painter.dart';
+import 'marker_painter.dart';
+
 class CustomGaugeSegment {
   final String segmentName;
   final int segmentSize;
@@ -14,8 +17,10 @@ class GaugeNeedleClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path()
       ..addRect(
-        Rect.fromPoints(Offset(size.width / 2 - 2, size.height / 1.21),
-            Offset(size.width / 2 + 2, size.height * .97)),
+        Rect.fromPoints(
+          Offset(size.width / 2 - 2, size.height / 1.175),
+          Offset(size.width / 2 + 2, size.height * .945),
+        ),
       )
       ..close();
 
@@ -24,67 +29,6 @@ class GaugeNeedleClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(GaugeNeedleClipper oldClipper) => false;
-}
-
-class ArcPainter extends CustomPainter {
-  ArcPainter(
-      {this.startAngle = 0, this.sweepAngle = 0, this.color = Colors.grey});
-
-  final double startAngle;
-
-  final double sweepAngle;
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTRB(size.width * 0.1, size.height * 0.1,
-        size.width * 0.9, size.height * 0.9);
-
-    const useCenter = false;
-
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.08;
-
-    canvas.drawArc(rect, startAngle, sweepAngle, useCenter, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
-class GaugeMarkerPainter extends CustomPainter {
-  GaugeMarkerPainter(this.text, this.position, this.textStyle);
-
-  final String text;
-  final TextStyle textStyle;
-  final Offset position;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final textSpan = TextSpan(
-      text: text,
-      style: textStyle,
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(
-      minWidth: 0,
-      maxWidth: size.width,
-    );
-    textPainter.paint(canvas, position);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
 }
 
 class CustomGauge extends StatefulWidget {
@@ -134,7 +78,7 @@ class _CustomGaugeState extends State<CustomGauge> {
     double cumulativeSegmentSize = 0.0;
     int gaugeSpread = widget.maxValue - widget.minValue;
 
-    segments.reversed.forEach((segment) {
+    for (var segment in segments.reversed) {
       arcs.add(
         CustomPaint(
           size: Size(widget.gaugeSize, widget.gaugeSize),
@@ -147,7 +91,7 @@ class _CustomGaugeState extends State<CustomGauge> {
         ),
       );
       cumulativeSegmentSize = cumulativeSegmentSize + segment.segmentSize;
-    });
+    }
 
     return arcs;
   }
@@ -184,9 +128,9 @@ class _CustomGaugeState extends State<CustomGauge> {
 
     if (segments != null) {
       double totalSegmentSize = 0;
-      segments.forEach((segment) {
+      for (var segment in segments) {
         totalSegmentSize = totalSegmentSize + segment.segmentSize;
-      });
+      }
       if (totalSegmentSize != (widget.maxValue - widget.minValue)) {
         throw Exception('Total segment size must equal (Max Size - Min Size)');
       }
@@ -202,94 +146,41 @@ class _CustomGaugeState extends State<CustomGauge> {
       child: Stack(
         children: <Widget>[
           ...buildGauge(segments),
-          widget.showMarkers
-              ? CustomPaint(
-                  size: Size(widget.gaugeSize, widget.gaugeSize),
-                  painter: GaugeMarkerPainter(
-                    '${widget.minValue}%',
-                    Offset(widget.gaugeSize * -0.05, widget.gaugeSize * 0.45),
-                    const TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
-          widget.showMarkers
-              ? CustomPaint(
-                  size: Size(widget.gaugeSize, widget.gaugeSize),
-                  painter: GaugeMarkerPainter(
-                    '${widget.maxValue}%',
-                    Offset(widget.gaugeSize * 0.97, widget.gaugeSize * 0.45),
-                    const TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.black,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
+          if (widget.showMarkers)
+            CustomPaint(
+              size: Size(widget.gaugeSize, widget.gaugeSize),
+              painter: GaugeMarkerPainter(
+                '${widget.minValue}%',
+                Offset(widget.gaugeSize * -0.02, widget.gaugeSize * 0.45),
+                const TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          if (widget.showMarkers)
+            CustomPaint(
+              size: Size(widget.gaugeSize, widget.gaugeSize),
+              painter: GaugeMarkerPainter(
+                '${widget.maxValue}%',
+                Offset(widget.gaugeSize * 0.95, widget.gaugeSize * 0.45),
+                const TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          if (widget.showBaselineMarker) markerWidget(localBaselineValue),
           if (widget.showBaselineMarker)
-            Container(
-              height: widget.gaugeSize,
-              width: widget.gaugeSize,
-              alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: (math.pi / 2) +
-                    ((localBaselineValue! - widget.minValue) /
-                        (widget.maxValue - widget.minValue) *
-                        math.pi),
-                child: ClipPath(
-                  clipper: GaugeNeedleClipper(),
-                  child: Container(
-                    width: widget.gaugeSize * 0.3,
-                    height: widget.gaugeSize,
-                    color: widget.needleColor,
-                  ),
-                ),
-              ),
-            ),
+            legendWidget(label: 'Baseline', localValue: localBaselineValue),
+          if (widget.showPreviousMarker) markerWidget(localPreviousValue),
           if (widget.showPreviousMarker)
-            Container(
-              height: widget.gaugeSize,
-              width: widget.gaugeSize,
-              alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: (math.pi / 2) +
-                    ((localPreviousValue! - widget.minValue) /
-                        (widget.maxValue - widget.minValue) *
-                        math.pi),
-                child: ClipPath(
-                  clipper: GaugeNeedleClipper(),
-                  child: Container(
-                    width: widget.gaugeSize * 0.3,
-                    height: widget.gaugeSize,
-                    color: widget.needleColor,
-                  ),
-                ),
-              ),
-            ),
+            legendWidget(label: 'Previous', localValue: localPreviousValue),
+          if (widget.showCurrentMarker) markerWidget(localCurrentValue),
           if (widget.showCurrentMarker)
-            Container(
-              height: widget.gaugeSize,
-              width: widget.gaugeSize,
-              alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: (math.pi / 2) +
-                    ((localCurrentValue! - widget.minValue) /
-                        (widget.maxValue - widget.minValue) *
-                        math.pi),
-                child: ClipPath(
-                  clipper: GaugeNeedleClipper(),
-                  child: Container(
-                    width: widget.gaugeSize * 0.3,
-                    height: widget.gaugeSize,
-                    color: widget.needleColor,
-                  ),
-                ),
-              ),
-            ),
+            legendWidget(label: 'Current', localValue: localCurrentValue),
           Container(
-            height: 240,
+            height: 260,
             width: widget.gaugeSize,
             alignment: Alignment.center,
             child: Column(
@@ -326,7 +217,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           Positioned(
             top: 260,
             width: 200,
-            right: 54,
+            right: 64,
             child: Center(
               child: Text(
                 'Enter fields below',
@@ -335,6 +226,47 @@ class _CustomGaugeState extends State<CustomGauge> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Container markerWidget(int? localValue) {
+    return Container(
+      height: widget.gaugeSize,
+      width: widget.gaugeSize,
+      alignment: Alignment.center,
+      child: Transform.rotate(
+        angle: (math.pi / 2) +
+            ((localValue! - widget.minValue) /
+                (widget.maxValue - widget.minValue) *
+                math.pi),
+        child: ClipPath(
+          clipper: GaugeNeedleClipper(),
+          child: Container(
+            width: widget.gaugeSize * 0.3,
+            height: widget.gaugeSize,
+            color: widget.needleColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Container legendWidget({required String label, int? localValue}) {
+    return Container(
+      height: widget.gaugeSize,
+      width: widget.gaugeSize,
+      alignment: Alignment.center,
+      child: Transform.rotate(
+        angle: (3 * math.pi / 2) +
+            ((localValue! - widget.minValue) /
+                (widget.maxValue - widget.minValue) *
+                math.pi),
+        child: Column(
+          children: [
+            Text('$label: $localValue%'),
+          ],
+        ),
       ),
     );
   }
