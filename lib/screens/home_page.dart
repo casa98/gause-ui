@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gauge_ui/widget/custom_text_field.dart';
@@ -57,9 +59,18 @@ class _HomePageState extends State<HomePage> {
                       CustomGaugeSegment('Medium', 34, Colors.orange),
                       CustomGaugeSegment('High', 33, Colors.green),
                     ],
-                    baselineValue: 75,
-                    previousValue: 25,
-                    currentValue: 40,
+                    baselineValue: baselineController.text.isEmpty
+                        ? 0
+                        : int.parse(baselineController.text),
+                    showBaselineMarker: baselineController.text.isNotEmpty,
+                    previousValue: previousController.text.isEmpty
+                        ? 0
+                        : int.parse(previousController.text),
+                    showPreviousMarker: previousController.text.isNotEmpty,
+                    currentValue: currentController.text.isEmpty
+                        ? 0
+                        : int.parse(currentController.text),
+                    showCurrentMarker: currentController.text.isNotEmpty,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),

@@ -102,6 +102,9 @@ class CustomGauge extends StatefulWidget {
 
   final Widget? valueWidget;
 
+  final bool showBaselineMarker;
+  final bool showPreviousMarker;
+  final bool showCurrentMarker;
   final bool showMarkers;
 
   @override
@@ -118,6 +121,9 @@ class CustomGauge extends StatefulWidget {
     this.currentValue,
     this.needleColor = Colors.black,
     this.valueWidget,
+    this.showBaselineMarker = false,
+    this.showPreviousMarker = false,
+    this.showCurrentMarker = false,
     this.showMarkers = true,
   }) : super(key: key);
 }
@@ -222,63 +228,66 @@ class _CustomGaugeState extends State<CustomGauge> {
                   ),
                 )
               : const SizedBox.shrink(),
-          Container(
-            height: widget.gaugeSize,
-            width: widget.gaugeSize,
-            alignment: Alignment.center,
-            child: Transform.rotate(
-              angle: (math.pi / 2) +
-                  ((localBaselineValue! - widget.minValue) /
-                      (widget.maxValue - widget.minValue) *
-                      math.pi),
-              child: ClipPath(
-                clipper: GaugeNeedleClipper(),
-                child: Container(
-                  width: widget.gaugeSize * 0.3,
-                  height: widget.gaugeSize,
-                  color: widget.needleColor,
+          if (widget.showBaselineMarker)
+            Container(
+              height: widget.gaugeSize,
+              width: widget.gaugeSize,
+              alignment: Alignment.center,
+              child: Transform.rotate(
+                angle: (math.pi / 2) +
+                    ((localBaselineValue! - widget.minValue) /
+                        (widget.maxValue - widget.minValue) *
+                        math.pi),
+                child: ClipPath(
+                  clipper: GaugeNeedleClipper(),
+                  child: Container(
+                    width: widget.gaugeSize * 0.3,
+                    height: widget.gaugeSize,
+                    color: widget.needleColor,
+                  ),
                 ),
               ),
             ),
-          ),
-          Container(
-            height: widget.gaugeSize,
-            width: widget.gaugeSize,
-            alignment: Alignment.center,
-            child: Transform.rotate(
-              angle: (math.pi / 2) +
-                  ((localPreviousValue! - widget.minValue) /
-                      (widget.maxValue - widget.minValue) *
-                      math.pi),
-              child: ClipPath(
-                clipper: GaugeNeedleClipper(),
-                child: Container(
-                  width: widget.gaugeSize * 0.3,
-                  height: widget.gaugeSize,
-                  color: widget.needleColor,
+          if (widget.showPreviousMarker)
+            Container(
+              height: widget.gaugeSize,
+              width: widget.gaugeSize,
+              alignment: Alignment.center,
+              child: Transform.rotate(
+                angle: (math.pi / 2) +
+                    ((localPreviousValue! - widget.minValue) /
+                        (widget.maxValue - widget.minValue) *
+                        math.pi),
+                child: ClipPath(
+                  clipper: GaugeNeedleClipper(),
+                  child: Container(
+                    width: widget.gaugeSize * 0.3,
+                    height: widget.gaugeSize,
+                    color: widget.needleColor,
+                  ),
                 ),
               ),
             ),
-          ),
-          Container(
-            height: widget.gaugeSize,
-            width: widget.gaugeSize,
-            alignment: Alignment.center,
-            child: Transform.rotate(
-              angle: (math.pi / 2) +
-                  ((localCurrentValue! - widget.minValue) /
-                      (widget.maxValue - widget.minValue) *
-                      math.pi),
-              child: ClipPath(
-                clipper: GaugeNeedleClipper(),
-                child: Container(
-                  width: widget.gaugeSize * 0.3,
-                  height: widget.gaugeSize,
-                  color: widget.needleColor,
+          if (widget.showCurrentMarker)
+            Container(
+              height: widget.gaugeSize,
+              width: widget.gaugeSize,
+              alignment: Alignment.center,
+              child: Transform.rotate(
+                angle: (math.pi / 2) +
+                    ((localCurrentValue! - widget.minValue) /
+                        (widget.maxValue - widget.minValue) *
+                        math.pi),
+                child: ClipPath(
+                  clipper: GaugeNeedleClipper(),
+                  child: Container(
+                    width: widget.gaugeSize * 0.3,
+                    height: widget.gaugeSize,
+                    color: widget.needleColor,
+                  ),
                 ),
               ),
             ),
-          ),
           Container(
             height: 240,
             width: widget.gaugeSize,
