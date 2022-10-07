@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
@@ -17,8 +18,8 @@ class GaugeNeedleClipper extends CustomClipper<Path> {
     final path = Path()
       ..addRect(
         Rect.fromPoints(
-          Offset(size.width / 2 - 1.5, size.height / 1.175),
-          Offset(size.width / 2 + 1.5, size.height * .945),
+          Offset(size.width / 2 - 1.3, size.height / 1.175),
+          Offset(size.width / 2 + 1.3, size.height * .945),
         ),
       )
       ..close();
@@ -41,14 +42,11 @@ class CustomGauge extends StatefulWidget {
   final int minValue;
   final int maxValue;
 
-  final int? baselineValue;
-  final int? previousValue;
-  final int? currentValue;
+  final int baselineValue;
+  final int previousValue;
+  final int currentValue;
 
   final Color needleColor;
-
-  final String descriptionString;
-  final String descriptionValue;
 
   final bool showBaselineMarker;
   final bool showPreviousMarker;
@@ -64,12 +62,10 @@ class CustomGauge extends StatefulWidget {
     this.gaugeSize = 200,
     this.minValue = 0,
     this.maxValue = 100,
-    this.baselineValue,
-    this.previousValue,
-    this.currentValue,
+    required this.baselineValue,
+    required this.previousValue,
+    required this.currentValue,
     this.needleColor = Colors.black,
-    required this.descriptionString,
-    required this.descriptionValue,
     this.showBaselineMarker = false,
     this.showPreviousMarker = false,
     this.showCurrentMarker = false,
@@ -103,31 +99,35 @@ class _CustomGaugeState extends State<CustomGauge> {
 
   @override
   Widget build(BuildContext context) {
+    Color widgetColor = Colors.green[300]!;
+    if (widget.currentValue - widget.previousValue < 0) {
+      widgetColor = Colors.red;
+    }
     List<CustomGaugeSegment>? segments = widget.segments;
     int? localBaselineValue = widget.baselineValue;
 
-    if (widget.baselineValue! < widget.minValue) {
+    if (widget.baselineValue < widget.minValue) {
       localBaselineValue = widget.minValue;
     }
-    if (widget.baselineValue! > widget.maxValue) {
+    if (widget.baselineValue > widget.maxValue) {
       localBaselineValue = widget.maxValue;
     }
 
     int? localPreviousValue = widget.previousValue;
 
-    if (widget.previousValue! < widget.minValue) {
+    if (widget.previousValue < widget.minValue) {
       localPreviousValue = widget.minValue;
     }
-    if (widget.previousValue! > widget.maxValue) {
+    if (widget.previousValue > widget.maxValue) {
       localPreviousValue = widget.maxValue;
     }
 
     int? localCurrentValue = widget.currentValue;
 
-    if (widget.currentValue! < widget.minValue) {
+    if (widget.currentValue < widget.minValue) {
       localCurrentValue = widget.minValue;
     }
-    if (widget.currentValue! > widget.maxValue) {
+    if (widget.currentValue > widget.maxValue) {
       localCurrentValue = widget.maxValue;
     }
 
@@ -150,46 +150,43 @@ class _CustomGaugeState extends State<CustomGauge> {
         children: <Widget>[
           ...buildGauge(segments),
           if (widget.showMarkers)
-            CustomPaint(
-              size: Size(widget.gaugeSize, widget.gaugeSize),
-              painter: GaugeMarkerPainter(
-                '${widget.minValue}%',
-                Offset(
-                  widget.gaugeSize * -0.02,
-                  ((widget.showBaselineMarker ||
-                              widget.showPreviousMarker ||
-                              widget.showCurrentMarker) &&
-                          (widget.baselineValue! < 4 ||
-                              widget.previousValue! < 4 ||
-                              widget.currentValue! < 4))
-                      ? widget.gaugeSize * 0.51
-                      : widget.gaugeSize * 0.45,
-                ),
-                const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                ),
-              ),
-            ),
+            ((widget.baselineValue < 4 && widget.showBaselineMarker) ||
+                    (widget.previousValue < 4 && widget.showPreviousMarker) ||
+                    (widget.currentValue < 4 && widget.showCurrentMarker))
+                ? const SizedBox.shrink()
+                : CustomPaint(
+                    size: Size(widget.gaugeSize, widget.gaugeSize),
+                    painter: GaugeMarkerPainter(
+                      '${widget.minValue}%',
+                      Offset(
+                        widget.gaugeSize * -0.02,
+                        widget.gaugeSize * 0.45,
+                      ),
+                      const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
           if (widget.showMarkers)
-            CustomPaint(
-              size: Size(widget.gaugeSize, widget.gaugeSize),
-              painter: GaugeMarkerPainter(
-                '${widget.maxValue}%',
-                Offset(
-                  widget.gaugeSize * 0.95,
-                  (widget.baselineValue! > 96 ||
-                          widget.previousValue! > 96 ||
-                          widget.currentValue! > 96)
-                      ? widget.gaugeSize * 0.51
-                      : widget.gaugeSize * 0.45,
-                ),
-                const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                ),
-              ),
-            ),
+            (widget.baselineValue > 96 ||
+                    widget.previousValue > 96 ||
+                    widget.currentValue > 96)
+                ? const SizedBox.shrink()
+                : CustomPaint(
+                    size: Size(widget.gaugeSize, widget.gaugeSize),
+                    painter: GaugeMarkerPainter(
+                      '${widget.maxValue}%',
+                      Offset(
+                        widget.gaugeSize * 0.95,
+                        widget.gaugeSize * 0.45,
+                      ),
+                      const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
           if (widget.showBaselineMarker) markerWidget(localBaselineValue),
           if (widget.showBaselineMarker)
             legendWidget(label: 'Baseline', localValue: localBaselineValue),
@@ -200,7 +197,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           if (widget.showCurrentMarker)
             legendWidget(label: 'Current', localValue: localCurrentValue),
           Container(
-            height: 224,
+            height: 230,
             width: widget.gaugeSize,
             alignment: Alignment.center,
             child: Column(
@@ -212,11 +209,12 @@ class _CustomGaugeState extends State<CustomGauge> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      widget.descriptionValue,
-                      style: Theme.of(context).textTheme.headline2?.copyWith(
-                            color: Colors.grey[500],
-                            fontWeight: FontWeight.w500,
-                          ),
+                      widget.currentValue.toString(),
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 70.0,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     Column(
                       children: [
@@ -227,24 +225,64 @@ class _CustomGaugeState extends State<CustomGauge> {
                               .headline6
                               ?.copyWith(color: Colors.grey[500]),
                         ),
-                        const SizedBox(height: 10.0),
+                        const SizedBox(height: 13.0),
                       ],
                     ),
                   ],
                 ),
-                //TODO
-                Text(
-                  'x from previous',
-                  style: Theme.of(context).textTheme.headline6?.copyWith(
-                        color: Colors.grey[400],
-                      ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                      children: [
+                        Positioned(
+                          right: (widget.currentValue - widget.previousValue)
+                                      .abs() <
+                                  10
+                              ? 16.0
+                              : (widget.currentValue - widget.previousValue)
+                                          .abs() ==
+                                      100
+                                  ? 36.0
+                                  : 26.0,
+                          top: -6.0,
+                          child: widgetColor == Colors.green[300]
+                              ? Icon(
+                                  Icons.arrow_drop_up_rounded,
+                                  color: widgetColor,
+                                  size: 36.0,
+                                )
+                              : Icon(
+                                  Icons.arrow_drop_down_rounded,
+                                  color: widgetColor,
+                                  size: 36.0,
+                                ),
+                        ),
+                        Text(
+                          '    ${(widget.currentValue - widget.previousValue).abs()}%',
+                          style: TextStyle(
+                            color: widgetColor,
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      'from previous',
+                      style: Theme.of(context).textTheme.headline6?.copyWith(
+                            color: Colors.grey[400],
+                          ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           Positioned(
-            top: 260,
-            right: 56,
+            top: 270,
+            right: 64,
             child: Center(
               child: Text(
                 '${widget.usingTextfields ? 'Enter fields' : 'Move Sliders'} below',
@@ -272,7 +310,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           child: Container(
             width: widget.gaugeSize * 0.3,
             height: widget.gaugeSize,
-            color: Colors.grey[500],
+            color: Colors.grey[600],
           ),
         ),
       ),

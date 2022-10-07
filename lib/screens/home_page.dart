@@ -19,8 +19,6 @@ class _HomePageState extends State<HomePage> {
   int baselineValue = 0;
   int currentValue = 0;
   int previousValue = 0;
-  int selectedValue = 0;
-  String selectedLabel = '';
   bool usingTextfields = false;
   bool visible = false;
 
@@ -93,9 +91,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 32.0),
                   CustomGauge(
-                    descriptionString: selectedLabel,
-                    descriptionValue: selectedValue.toString(),
-                    gaugeSize: 320,
+                    gaugeSize: 334,
                     baselineValue: baselineController.text.isEmpty
                         ? 0
                         : int.parse(baselineController.text),
@@ -149,14 +145,12 @@ class _HomePageState extends State<HomePage> {
                                 value: baselineValue.toDouble(),
                                 onChanged: (value) {
                                   setState(() => baselineValue = value.toInt());
-                                  selectedValue = value.toInt();
-                                  selectedLabel = 'baseline';
                                   baselineController.text =
                                       value.toInt().toString();
                                 },
                                 min: 0,
                                 max: 100,
-                                divisions: 100,
+                                divisions: 101,
                               ),
                               const SizedBox(height: 8.0),
                               Text(
@@ -167,14 +161,12 @@ class _HomePageState extends State<HomePage> {
                                 value: previousValue.toDouble(),
                                 onChanged: (value) {
                                   setState(() => previousValue = value.toInt());
-                                  selectedValue = value.toInt();
-                                  selectedLabel = 'previous';
                                   previousController.text =
                                       value.toInt().toString();
                                 },
                                 min: 0,
                                 max: 100,
-                                divisions: 100,
+                                divisions: 101,
                               ),
                               const SizedBox(height: 8.0),
                               subtitleWidget(context),
@@ -182,14 +174,12 @@ class _HomePageState extends State<HomePage> {
                                 value: currentValue.toDouble(),
                                 onChanged: (value) {
                                   setState(() => currentValue = value.toInt());
-                                  selectedValue = value.toInt();
-                                  selectedLabel = 'current';
                                   currentController.text =
                                       value.toInt().toString();
                                 },
                                 min: 0,
                                 max: 100,
-                                divisions: 100,
+                                divisions: 101,
                               ),
                             ],
                           ),
