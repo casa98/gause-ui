@@ -96,11 +96,6 @@ class _HomePageState extends State<HomePage> {
                     descriptionString: selectedLabel,
                     descriptionValue: selectedValue.toString(),
                     gaugeSize: 320,
-                    segments: [
-                      CustomGaugeSegment('Low', 33, Colors.red),
-                      CustomGaugeSegment('Medium', 34, Colors.orange),
-                      CustomGaugeSegment('High', 33, Colors.green),
-                    ],
                     baselineValue: baselineController.text.isEmpty
                         ? 0
                         : int.parse(baselineController.text),

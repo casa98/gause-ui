@@ -4,14 +4,11 @@ class ArcPainter extends CustomPainter {
   ArcPainter({
     this.startAngle = 0,
     this.sweepAngle = 0,
-    this.color = Colors.grey,
   });
 
   final double startAngle;
 
   final double sweepAngle;
-
-  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -21,7 +18,16 @@ class ArcPainter extends CustomPainter {
     const useCenter = false;
 
     final paint = Paint()
-      ..color = color
+      ..shader = LinearGradient(
+        colors: [
+          Colors.red[600]!,
+          Colors.orange[300]!,
+          Colors.yellow,
+          Colors.green,
+        ],
+        begin: Alignment.bottomLeft,
+        end: Alignment.bottomRight,
+      ).createShader(rect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 20;
 

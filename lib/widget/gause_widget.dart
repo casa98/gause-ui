@@ -7,9 +7,8 @@ import 'marker_painter.dart';
 class CustomGaugeSegment {
   final String segmentName;
   final int segmentSize;
-  final Color segmentColor;
 
-  CustomGaugeSegment(this.segmentName, this.segmentSize, this.segmentColor);
+  CustomGaugeSegment(this.segmentName, this.segmentSize);
 }
 
 class GaugeNeedleClipper extends CustomClipper<Path> {
@@ -33,7 +32,11 @@ class GaugeNeedleClipper extends CustomClipper<Path> {
 
 class CustomGauge extends StatefulWidget {
   final double gaugeSize;
-  final List<CustomGaugeSegment>? segments;
+  final List<CustomGaugeSegment>? segments = [
+    CustomGaugeSegment('Low', 33),
+    CustomGaugeSegment('Medium', 34),
+    CustomGaugeSegment('High', 33),
+  ];
 
   final int minValue;
   final int maxValue;
@@ -56,10 +59,9 @@ class CustomGauge extends StatefulWidget {
   @override
   _CustomGaugeState createState() => _CustomGaugeState();
 
-  const CustomGauge({
+  CustomGauge({
     Key? key,
     this.gaugeSize = 200,
-    this.segments,
     this.minValue = 0,
     this.maxValue = 100,
     this.baselineValue,
@@ -90,7 +92,6 @@ class _CustomGaugeState extends State<CustomGauge> {
             startAngle: math.pi,
             sweepAngle:
                 ((gaugeSpread - cumulativeSegmentSize) / gaugeSpread) * math.pi,
-            color: segment.segmentColor,
           ),
         ),
       );
@@ -139,9 +140,7 @@ class _CustomGaugeState extends State<CustomGauge> {
         throw Exception('Total segment size must equal (Max Size - Min Size)');
       }
     } else {
-      segments = [
-        CustomGaugeSegment('', (widget.maxValue - widget.minValue), Colors.grey)
-      ];
+      segments = [CustomGaugeSegment('', (widget.maxValue - widget.minValue))];
     }
 
     return SizedBox(
