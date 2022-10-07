@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   int selectedValue = 0;
   String selectedLabel = '';
   bool usingTextfields = false;
+  bool visible = false;
 
   @override
   void initState() {
@@ -29,6 +30,17 @@ class _HomePageState extends State<HomePage> {
     baselineController = TextEditingController();
     currentController = TextEditingController();
     previousController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(
+          content: Text('Soft animation...'),
+          duration: Duration(milliseconds: 2000),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      // await Future.delayed(const Duration(milliseconds: 500));
+      setState(() => visible = true);
+    });
   }
 
   @override
@@ -66,125 +78,129 @@ class _HomePageState extends State<HomePage> {
             //   ),
             // ],
           ),
-          body: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'PercentGause',
-                  style: Theme.of(context).textTheme.headline4,
-                ),
-                const SizedBox(height: 32.0),
-                CustomGauge(
-                  descriptionString: selectedLabel,
-                  descriptionValue: selectedValue.toString(),
-                  gaugeSize: 320,
-                  segments: [
-                    CustomGaugeSegment('Low', 33, Colors.red),
-                    CustomGaugeSegment('Medium', 34, Colors.orange),
-                    CustomGaugeSegment('High', 33, Colors.green),
-                  ],
-                  baselineValue: baselineController.text.isEmpty
-                      ? 0
-                      : int.parse(baselineController.text),
-                  showBaselineMarker: baselineController.text.isNotEmpty,
-                  previousValue: previousController.text.isEmpty
-                      ? 0
-                      : int.parse(previousController.text),
-                  showPreviousMarker: previousController.text.isNotEmpty,
-                  currentValue: currentController.text.isEmpty
-                      ? 0
-                      : int.parse(currentController.text),
-                  showCurrentMarker: currentController.text.isNotEmpty,
-                  usingTextfields: usingTextfields,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: usingTextfields
-                      ? Row(
-                          children: [
-                            Expanded(
-                              child: CustomTextField(
-                                helperText: 'Baseline',
-                                controller: baselineController,
+          body: AnimatedOpacity(
+            opacity: visible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 2000),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'PercentGause',
+                    style: Theme.of(context).textTheme.headline4,
+                  ),
+                  const SizedBox(height: 32.0),
+                  CustomGauge(
+                    descriptionString: selectedLabel,
+                    descriptionValue: selectedValue.toString(),
+                    gaugeSize: 320,
+                    segments: [
+                      CustomGaugeSegment('Low', 33, Colors.red),
+                      CustomGaugeSegment('Medium', 34, Colors.orange),
+                      CustomGaugeSegment('High', 33, Colors.green),
+                    ],
+                    baselineValue: baselineController.text.isEmpty
+                        ? 0
+                        : int.parse(baselineController.text),
+                    showBaselineMarker: baselineController.text.isNotEmpty,
+                    previousValue: previousController.text.isEmpty
+                        ? 0
+                        : int.parse(previousController.text),
+                    showPreviousMarker: previousController.text.isNotEmpty,
+                    currentValue: currentController.text.isEmpty
+                        ? 0
+                        : int.parse(currentController.text),
+                    showCurrentMarker: currentController.text.isNotEmpty,
+                    usingTextfields: usingTextfields,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: usingTextfields
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  helperText: 'Baseline',
+                                  controller: baselineController,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: CustomTextField(
-                                helperText: 'Previous',
-                                controller: previousController,
+                              const SizedBox(width: 16.0),
+                              Expanded(
+                                child: CustomTextField(
+                                  helperText: 'Previous',
+                                  controller: previousController,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: CustomTextField(
-                                helperText: 'Current',
-                                controller: currentController,
-                                textInputAction: TextInputAction.done,
+                              const SizedBox(width: 16.0),
+                              Expanded(
+                                child: CustomTextField(
+                                  helperText: 'Current',
+                                  controller: currentController,
+                                  textInputAction: TextInputAction.done,
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Baseline',
-                              style: Theme.of(context).textTheme.subtitle1,
-                            ),
-                            Slider.adaptive(
-                              value: baselineValue.toDouble(),
-                              onChanged: (value) {
-                                setState(() => baselineValue = value.toInt());
-                                selectedValue = value.toInt();
-                                selectedLabel = 'baseline';
-                                baselineController.text =
-                                    value.toInt().toString();
-                              },
-                              min: 0,
-                              max: 100,
-                              divisions: 100,
-                            ),
-                            const SizedBox(height: 8.0),
-                            Text(
-                              'Previous',
-                              style: Theme.of(context).textTheme.subtitle1,
-                            ),
-                            Slider.adaptive(
-                              value: previousValue.toDouble(),
-                              onChanged: (value) {
-                                setState(() => previousValue = value.toInt());
-                                selectedValue = value.toInt();
-                                selectedLabel = 'previous';
-                                previousController.text =
-                                    value.toInt().toString();
-                              },
-                              min: 0,
-                              max: 100,
-                              divisions: 100,
-                            ),
-                            const SizedBox(height: 8.0),
-                            subtitleWidget(context),
-                            Slider.adaptive(
-                              value: currentValue.toDouble(),
-                              onChanged: (value) {
-                                setState(() => currentValue = value.toInt());
-                                selectedValue = value.toInt();
-                                selectedLabel = 'current';
-                                currentController.text =
-                                    value.toInt().toString();
-                              },
-                              min: 0,
-                              max: 100,
-                              divisions: 100,
-                            ),
-                          ],
-                        ),
-                ),
-              ],
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Baseline',
+                                style: Theme.of(context).textTheme.subtitle1,
+                              ),
+                              Slider.adaptive(
+                                value: baselineValue.toDouble(),
+                                onChanged: (value) {
+                                  setState(() => baselineValue = value.toInt());
+                                  selectedValue = value.toInt();
+                                  selectedLabel = 'baseline';
+                                  baselineController.text =
+                                      value.toInt().toString();
+                                },
+                                min: 0,
+                                max: 100,
+                                divisions: 100,
+                              ),
+                              const SizedBox(height: 8.0),
+                              Text(
+                                'Previous',
+                                style: Theme.of(context).textTheme.subtitle1,
+                              ),
+                              Slider.adaptive(
+                                value: previousValue.toDouble(),
+                                onChanged: (value) {
+                                  setState(() => previousValue = value.toInt());
+                                  selectedValue = value.toInt();
+                                  selectedLabel = 'previous';
+                                  previousController.text =
+                                      value.toInt().toString();
+                                },
+                                min: 0,
+                                max: 100,
+                                divisions: 100,
+                              ),
+                              const SizedBox(height: 8.0),
+                              subtitleWidget(context),
+                              Slider.adaptive(
+                                value: currentValue.toDouble(),
+                                onChanged: (value) {
+                                  setState(() => currentValue = value.toInt());
+                                  selectedValue = value.toInt();
+                                  selectedLabel = 'current';
+                                  currentController.text =
+                                      value.toInt().toString();
+                                },
+                                min: 0,
+                                max: 100,
+                                divisions: 100,
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
