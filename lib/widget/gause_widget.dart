@@ -17,8 +17,8 @@ class GaugeNeedleClipper extends CustomClipper<Path> {
     final path = Path()
       ..addRect(
         Rect.fromPoints(
-          Offset(size.width / 2 - 2, size.height / 1.175),
-          Offset(size.width / 2 + 2, size.height * .945),
+          Offset(size.width / 2 - 1.5, size.height / 1.175),
+          Offset(size.width / 2 + 1.5, size.height * .945),
         ),
       )
       ..close();
@@ -200,7 +200,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           if (widget.showCurrentMarker)
             legendWidget(label: 'Current', localValue: localCurrentValue),
           Container(
-            height: 250,
+            height: 224,
             width: widget.gaugeSize,
             alignment: Alignment.center,
             child: Column(
@@ -213,29 +213,38 @@ class _CustomGaugeState extends State<CustomGauge> {
                   children: [
                     Text(
                       widget.descriptionValue,
-                      style: Theme.of(context).textTheme.headline3,
+                      style: Theme.of(context).textTheme.headline2?.copyWith(
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                     Column(
                       children: [
                         Text(
                           '%',
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6
+                              ?.copyWith(color: Colors.grey[500]),
                         ),
-                        const SizedBox(height: 8.0),
+                        const SizedBox(height: 10.0),
                       ],
                     ),
                   ],
                 ),
+                //TODO
                 Text(
-                  widget.descriptionString,
-                  style: Theme.of(context).textTheme.headline6,
+                  'x from previous',
+                  style: Theme.of(context).textTheme.headline6?.copyWith(
+                        color: Colors.grey[400],
+                      ),
                 ),
               ],
             ),
           ),
           Positioned(
             top: 260,
-            right: 64,
+            right: 56,
             child: Center(
               child: Text(
                 '${widget.usingTextfields ? 'Enter fields' : 'Move Sliders'} below',
@@ -263,7 +272,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           child: Container(
             width: widget.gaugeSize * 0.3,
             height: widget.gaugeSize,
-            color: widget.needleColor,
+            color: Colors.grey[500],
           ),
         ),
       ),
@@ -297,19 +306,19 @@ class _CustomGaugeState extends State<CustomGauge> {
                           label,
                           style: TextStyle(
                             fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
-                              ..strokeWidth = 2
+                              ..strokeWidth = 3
                               ..color = Colors.white,
                             letterSpacing: -0.2,
                           ),
                         ),
                         Text(
                           label,
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: Colors.grey[500],
                             fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             letterSpacing: -0.2,
                           ),
                         ),
@@ -320,10 +329,11 @@ class _CustomGaugeState extends State<CustomGauge> {
                         Text(
                           '$localValue%',
                           style: TextStyle(
+                            fontSize: 13.0,
                             fontWeight: FontWeight.bold,
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
-                              ..strokeWidth = 2
+                              ..strokeWidth = 3
                               ..color = Colors.white,
                             letterSpacing: -0.2,
                           ),
@@ -332,6 +342,7 @@ class _CustomGaugeState extends State<CustomGauge> {
                         Text(
                           '$localValue%',
                           style: const TextStyle(
+                            fontSize: 13.0,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.2,
                           ),

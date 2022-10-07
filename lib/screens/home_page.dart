@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gauge_ui/widget/custom_text_field.dart';
 
+import '../widget/custom_text_field.dart';
 import '../widget/gause_widget.dart';
 
 class HomePage extends StatefulWidget {
