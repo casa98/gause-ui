@@ -162,9 +162,7 @@ class _CustomGaugeState extends State<CustomGauge> {
                               widget.showCurrentMarker) &&
                           (widget.baselineValue! < 4 ||
                               widget.previousValue! < 4 ||
-                              widget.currentValue! < 4)
-                              
-                              )
+                              widget.currentValue! < 4))
                       ? widget.gaugeSize * 0.51
                       : widget.gaugeSize * 0.45,
                 ),
@@ -291,26 +289,56 @@ class _CustomGaugeState extends State<CustomGauge> {
             Transform.rotate(
               angle: math.pi * 2 - angle,
               child: Transform.translate(
-                offset: const Offset(0, -10),
-                child: Stack(
+                offset: const Offset(0, -22),
+                child: Column(
                   children: [
-                    Text(
-                      '$label: $localValue%',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        foreground: Paint()
-                          ..style = PaintingStyle.stroke
-                          ..strokeWidth = 2
-                          ..color = Colors.white,
-                        letterSpacing: -0.2,
-                      ),
+                    Stack(
+                      children: [
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            foreground: Paint()
+                              ..style = PaintingStyle.stroke
+                              ..strokeWidth = 2
+                              ..color = Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '$label: $localValue%',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.2,
-                      ),
+                    Stack(
+                      children: [
+                        Text(
+                          '$localValue%',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            foreground: Paint()
+                              ..style = PaintingStyle.stroke
+                              ..strokeWidth = 2
+                              ..color = Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          '$localValue%',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ],
                 ),
