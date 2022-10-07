@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gauge_ui/widget/custom_text_field.dart';
@@ -17,6 +15,11 @@ class _HomePageState extends State<HomePage> {
   late final TextEditingController baselineController;
   late final TextEditingController currentController;
   late final TextEditingController previousController;
+
+  int baselineValue = 0;
+  int currentValue = 0;
+  int previousValue = 0;
+  bool usingTextfields = false;
 
   @override
   void initState() {
@@ -40,72 +43,150 @@ class _HomePageState extends State<HomePage> {
           if (!currentFocus.hasPrimaryFocus) currentFocus.unfocus();
         },
         child: Scaffold(
-          body: Center(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'PercentGause',
-                    style: Theme.of(context).textTheme.headline4,
-                  ),
-                  const SizedBox(height: 32.0),
-                  CustomGauge(
-                    gaugeSize: 330,
-                    segments: [
-                      CustomGaugeSegment('Low', 33, Colors.red),
-                      CustomGaugeSegment('Medium', 34, Colors.orange),
-                      CustomGaugeSegment('High', 33, Colors.green),
-                    ],
-                    baselineValue: baselineController.text.isEmpty
-                        ? 0
-                        : int.parse(baselineController.text),
-                    showBaselineMarker: baselineController.text.isNotEmpty,
-                    previousValue: previousController.text.isEmpty
-                        ? 0
-                        : int.parse(previousController.text),
-                    showPreviousMarker: previousController.text.isNotEmpty,
-                    currentValue: currentController.text.isEmpty
-                        ? 0
-                        : int.parse(currentController.text),
-                    showCurrentMarker: currentController.text.isNotEmpty,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CustomTextField(
-                            helperText: 'Baseline',
-                            controller: baselineController,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: CustomTextField(
-                            helperText: 'Previous',
-                            controller: previousController,
-                          ),
-                        ),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: CustomTextField(
-                            helperText: 'Current',
-                            controller: currentController,
-                            textInputAction: TextInputAction.done,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 0.0,
+            actions: [
+              TextButton(
+                onPressed: () {
+                  baselineController.clear();
+                  baselineValue = 0;
+                  previousController.clear();
+                  previousValue = 0;
+                  currentController.clear();
+                  currentValue = 0;
+
+                  setState(() => usingTextfields = !usingTextfields);
+                },
+                child: const Text('Switch Mode'),
               ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'PercentGause',
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+                const SizedBox(height: 32.0),
+                CustomGauge(
+                  gaugeSize: 330,
+                  segments: [
+                    CustomGaugeSegment('Low', 33, Colors.red),
+                    CustomGaugeSegment('Medium', 34, Colors.orange),
+                    CustomGaugeSegment('High', 33, Colors.green),
+                  ],
+                  baselineValue: baselineController.text.isEmpty
+                      ? 0
+                      : int.parse(baselineController.text),
+                  showBaselineMarker: baselineController.text.isNotEmpty,
+                  previousValue: previousController.text.isEmpty
+                      ? 0
+                      : int.parse(previousController.text),
+                  showPreviousMarker: previousController.text.isNotEmpty,
+                  currentValue: currentController.text.isEmpty
+                      ? 0
+                      : int.parse(currentController.text),
+                  showCurrentMarker: currentController.text.isNotEmpty,
+                  usingTextfields: usingTextfields,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: usingTextfields
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                helperText: 'Baseline',
+                                controller: baselineController,
+                              ),
+                            ),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: CustomTextField(
+                                helperText: 'Previous',
+                                controller: previousController,
+                              ),
+                            ),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: CustomTextField(
+                                helperText: 'Current',
+                                controller: currentController,
+                                textInputAction: TextInputAction.done,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Baseline',
+                              style: Theme.of(context).textTheme.subtitle1,
+                            ),
+                            Slider.adaptive(
+                              value: baselineValue.toDouble(),
+                              onChanged: (value) {
+                                setState(() => baselineValue = value.toInt());
+                                baselineController.text =
+                                    value.toInt().toString();
+                              },
+                              min: 0,
+                              max: 100,
+                              divisions: 100,
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Previous',
+                              style: Theme.of(context).textTheme.subtitle1,
+                            ),
+                            Slider.adaptive(
+                              value: previousValue.toDouble(),
+                              onChanged: (value) {
+                                setState(() => previousValue = value.toInt());
+                                previousController.text =
+                                    value.toInt().toString();
+                              },
+                              min: 0,
+                              max: 100,
+                              divisions: 100,
+                            ),
+                            const SizedBox(height: 8.0),
+                            subtitleWidget(context),
+                            sliderWidget(),
+                          ],
+                        ),
+                ),
+              ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Text subtitleWidget(BuildContext context) {
+    return Text(
+      'Current',
+      style: Theme.of(context).textTheme.subtitle1,
+    );
+  }
+
+  Slider sliderWidget() {
+    return Slider.adaptive(
+      value: currentValue.toDouble(),
+      onChanged: (value) {
+        setState(() => currentValue = value.toInt());
+        currentController.text = value.toInt().toString();
+      },
+      min: 0,
+      max: 100,
+      divisions: 100,
     );
   }
 }

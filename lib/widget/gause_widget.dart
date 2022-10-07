@@ -50,6 +50,7 @@ class CustomGauge extends StatefulWidget {
   final bool showPreviousMarker;
   final bool showCurrentMarker;
   final bool showMarkers;
+  final bool usingTextfields;
 
   @override
   _CustomGaugeState createState() => _CustomGaugeState();
@@ -69,6 +70,7 @@ class CustomGauge extends StatefulWidget {
     this.showPreviousMarker = false,
     this.showCurrentMarker = false,
     this.showMarkers = true,
+    this.usingTextfields = true,
   }) : super(key: key);
 }
 
@@ -216,11 +218,10 @@ class _CustomGaugeState extends State<CustomGauge> {
           ),
           Positioned(
             top: 260,
-            width: 200,
             right: 64,
             child: Center(
               child: Text(
-                'Enter fields below',
+                '${widget.usingTextfields ? 'Enter fields' : 'Move Sliders'} below',
                 style: Theme.of(context).textTheme.headline5,
               ),
             ),
