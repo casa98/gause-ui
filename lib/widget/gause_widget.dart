@@ -44,7 +44,8 @@ class CustomGauge extends StatefulWidget {
 
   final Color needleColor;
 
-  final Widget? valueWidget;
+  final String descriptionString;
+  final String descriptionValue;
 
   final bool showBaselineMarker;
   final bool showPreviousMarker;
@@ -65,7 +66,8 @@ class CustomGauge extends StatefulWidget {
     this.previousValue,
     this.currentValue,
     this.needleColor = Colors.black,
-    this.valueWidget,
+    required this.descriptionString,
+    required this.descriptionValue,
     this.showBaselineMarker = false,
     this.showPreviousMarker = false,
     this.showCurrentMarker = false,
@@ -153,7 +155,19 @@ class _CustomGaugeState extends State<CustomGauge> {
               size: Size(widget.gaugeSize, widget.gaugeSize),
               painter: GaugeMarkerPainter(
                 '${widget.minValue}%',
-                Offset(widget.gaugeSize * -0.02, widget.gaugeSize * 0.45),
+                Offset(
+                  widget.gaugeSize * -0.02,
+                  ((widget.showBaselineMarker ||
+                              widget.showPreviousMarker ||
+                              widget.showCurrentMarker) &&
+                          (widget.baselineValue! < 4 ||
+                              widget.previousValue! < 4 ||
+                              widget.currentValue! < 4)
+                              
+                              )
+                      ? widget.gaugeSize * 0.51
+                      : widget.gaugeSize * 0.45,
+                ),
                 const TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -165,7 +179,14 @@ class _CustomGaugeState extends State<CustomGauge> {
               size: Size(widget.gaugeSize, widget.gaugeSize),
               painter: GaugeMarkerPainter(
                 '${widget.maxValue}%',
-                Offset(widget.gaugeSize * 0.95, widget.gaugeSize * 0.45),
+                Offset(
+                  widget.gaugeSize * 0.95,
+                  (widget.baselineValue! > 96 ||
+                          widget.previousValue! > 96 ||
+                          widget.currentValue! > 96)
+                      ? widget.gaugeSize * 0.51
+                      : widget.gaugeSize * 0.45,
+                ),
                 const TextStyle(
                   fontSize: 16.0,
                   color: Colors.black,
@@ -182,7 +203,7 @@ class _CustomGaugeState extends State<CustomGauge> {
           if (widget.showCurrentMarker)
             legendWidget(label: 'Current', localValue: localCurrentValue),
           Container(
-            height: 260,
+            height: 250,
             width: widget.gaugeSize,
             alignment: Alignment.center,
             child: Column(
@@ -193,11 +214,10 @@ class _CustomGaugeState extends State<CustomGauge> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    widget.valueWidget ??
-                        Text(
-                          localBaselineValue.toString(),
-                          style: Theme.of(context).textTheme.headline3,
-                        ),
+                    Text(
+                      widget.descriptionValue,
+                      style: Theme.of(context).textTheme.headline3,
+                    ),
                     Column(
                       children: [
                         Text(
@@ -210,7 +230,7 @@ class _CustomGaugeState extends State<CustomGauge> {
                   ],
                 ),
                 Text(
-                  'x from previous',
+                  widget.descriptionString,
                   style: Theme.of(context).textTheme.headline6,
                 ),
               ],
@@ -254,18 +274,48 @@ class _CustomGaugeState extends State<CustomGauge> {
   }
 
   Container legendWidget({required String label, int? localValue}) {
+    math.log(widget.maxValue);
+    math.log(widget.minValue);
+    final angle = (3 * math.pi / 2) +
+        ((localValue! - widget.minValue) /
+            (widget.maxValue - widget.minValue) *
+            math.pi);
     return Container(
       height: widget.gaugeSize,
       width: widget.gaugeSize,
       alignment: Alignment.center,
       child: Transform.rotate(
-        angle: (3 * math.pi / 2) +
-            ((localValue! - widget.minValue) /
-                (widget.maxValue - widget.minValue) *
-                math.pi),
+        angle: angle,
         child: Column(
           children: [
-            Text('$label: $localValue%'),
+            Transform.rotate(
+              angle: math.pi * 2 - angle,
+              child: Transform.translate(
+                offset: const Offset(0, -10),
+                child: Stack(
+                  children: [
+                    Text(
+                      '$label: $localValue%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 2
+                          ..color = Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    Text(
+                      '$label: $localValue%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

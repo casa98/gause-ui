@@ -19,6 +19,8 @@ class _HomePageState extends State<HomePage> {
   int baselineValue = 0;
   int currentValue = 0;
   int previousValue = 0;
+  int selectedValue = 0;
+  String selectedLabel = '';
   bool usingTextfields = false;
 
   @override
@@ -46,21 +48,23 @@ class _HomePageState extends State<HomePage> {
           appBar: AppBar(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0.0,
-            actions: [
-              TextButton(
-                onPressed: () {
-                  baselineController.clear();
-                  baselineValue = 0;
-                  previousController.clear();
-                  previousValue = 0;
-                  currentController.clear();
-                  currentValue = 0;
+            // actions: [
+            //   TextButton(
+            //     onPressed: () {
+            //       baselineController.clear();
+            //       baselineValue = 0;
+            //       previousController.clear();
+            //       previousValue = 0;
+            //       currentController.clear();
+            //       currentValue = 0;
+            //       selectedLabel = '';
+            //       selectedValue = 0;
 
-                  setState(() => usingTextfields = !usingTextfields);
-                },
-                child: const Text('Switch Mode'),
-              ),
-            ],
+            //       setState(() => usingTextfields = !usingTextfields);
+            //     },
+            //     child: const Text('Switch Mode'),
+            //   ),
+            // ],
           ),
           body: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -74,7 +78,9 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 32.0),
                 CustomGauge(
-                  gaugeSize: 330,
+                  descriptionString: selectedLabel,
+                  descriptionValue: selectedValue.toString(),
+                  gaugeSize: 320,
                   segments: [
                     CustomGaugeSegment('Low', 33, Colors.red),
                     CustomGaugeSegment('Medium', 34, Colors.orange),
@@ -133,6 +139,8 @@ class _HomePageState extends State<HomePage> {
                               value: baselineValue.toDouble(),
                               onChanged: (value) {
                                 setState(() => baselineValue = value.toInt());
+                                selectedValue = value.toInt();
+                                selectedLabel = 'baseline';
                                 baselineController.text =
                                     value.toInt().toString();
                               },
@@ -149,6 +157,8 @@ class _HomePageState extends State<HomePage> {
                               value: previousValue.toDouble(),
                               onChanged: (value) {
                                 setState(() => previousValue = value.toInt());
+                                selectedValue = value.toInt();
+                                selectedLabel = 'previous';
                                 previousController.text =
                                     value.toInt().toString();
                               },
@@ -158,7 +168,19 @@ class _HomePageState extends State<HomePage> {
                             ),
                             const SizedBox(height: 8.0),
                             subtitleWidget(context),
-                            sliderWidget(),
+                            Slider.adaptive(
+                              value: currentValue.toDouble(),
+                              onChanged: (value) {
+                                setState(() => currentValue = value.toInt());
+                                selectedValue = value.toInt();
+                                selectedLabel = 'current';
+                                currentController.text =
+                                    value.toInt().toString();
+                              },
+                              min: 0,
+                              max: 100,
+                              divisions: 100,
+                            ),
                           ],
                         ),
                 ),
@@ -174,19 +196,6 @@ class _HomePageState extends State<HomePage> {
     return Text(
       'Current',
       style: Theme.of(context).textTheme.subtitle1,
-    );
-  }
-
-  Slider sliderWidget() {
-    return Slider.adaptive(
-      value: currentValue.toDouble(),
-      onChanged: (value) {
-        setState(() => currentValue = value.toInt());
-        currentController.text = value.toInt().toString();
-      },
-      min: 0,
-      max: 100,
-      divisions: 100,
     );
   }
 }
